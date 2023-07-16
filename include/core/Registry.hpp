@@ -1,11 +1,9 @@
 #pragma once
 
 #include <typeinfo>
-#include "framework/dfx/Logger.hpp"
-#include "framework/types/TypeCast.hpp"
 #include "Component.hpp"
 
-namespace au::framework {
+namespace au::ncs {
 
 class Registry final {
 public:
@@ -40,7 +38,7 @@ public:
     }
 
     template <typename Component>
-    Component* GetComponent(Entity entity)
+    Component* GetComponent(Node entity)
     {
         if (entity.IsInvalid()) {
             AU_LOG_RETN_E(TAG, "Get component failed, input entity is invalid!");
@@ -55,7 +53,7 @@ public:
     }
 
     template <typename Component>
-    Component* AddComponent(Entity entity)
+    Component* AddComponent(Node entity)
     {
         if (entity.IsInvalid()) {
             AU_LOG_RETN_E(TAG, "Add component failed, input entity is invalid!");
@@ -70,7 +68,7 @@ public:
     }
 
     template <typename Component>
-    bool RemoveComponent(Entity entity)
+    bool RemoveComponent(Node entity)
     {
         if (entity.IsInvalid()) {
             AU_LOG_RETF_E(TAG, "Remove component failed, input entity is invalid!");
@@ -84,12 +82,12 @@ public:
         return storage->second->RemoveComponent(entity);
     }
 
-    Entity CreateEntity()
+    Node CreateNode()
     {
-        return Entity(gid++);
+        return Node(gid++);
     }
 
-    void DestroyEntity(Entity entity)
+    void DestroyNode(Node entity)
     {
         for (auto& [hash, storage] : storages) {
             storage->RemoveComponent(entity);
@@ -97,7 +95,7 @@ public:
     }
 
     template <typename Component>
-    bool ForEach(std::function<void(Entity, Component&)> process)
+    bool ForEach(std::function<void(Node, Component&)> process)
     {
         auto storage = storages.find(typeid(Component).hash_code());
         if (storage == storages.end()) {
@@ -114,14 +112,11 @@ public:
     }
 
 private:
-    AU_LOG_TAG(Registry);
-
     #if defined (DEBUG) || defined (_DEBUG)
     std::unordered_map<std::string, TypeHash> componentNameHashMap;
     #endif
-
     std::unordered_map<TypeHash, ComponentStorage*> storages;
-    Entity::EntityId gid = 10; // The first ten IDs are reserved.
+    Node::Id gid = 10; // The first ten IDs are reserved.
 };
 
 }

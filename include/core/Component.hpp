@@ -1,54 +1,43 @@
 #pragma once
 
 #include <unordered_map>
-#include "Entity.hpp"
+#include "Node.hpp"
 
-#define META_COMPONENT(name) struct name##MetaComponent
-#define DATA_COMPONENT(name) struct name##DataComponent
+#define COMPONENT(name) \
+static constexpr au::ncs::Name name##ComponentName = #name;            \
+static constexpr au::ncs::Uuid name##ComponentUuid = AU_CT_UUID(name); \
+struct name##Component final
 
-#define COMPONENT_IMPLEMENTATION(name, pod)                    \
-struct name##Component {                                       \
-    name##MetaComponent meta;                                  \
-    name##DataComponent data;                                  \
-    static_assert((std::is_trivial<name##MetaComponent>::value \
-        && std::is_standard_layout<name##MetaComponent>::value \
-        ) || !(pod), "MetaComponent must be POD!");            \
-    static_assert((std::is_trivial<name##DataComponent>::value \
-        && std::is_standard_layout<name##DataComponent>::value \
-        ) || !(pod), "DataComponent must be POD!");            \
-}
-
-#define COMPONENT(name) COMPONENT_IMPLEMENTATION(name, false)
-
-namespace au::framework {
+namespace au::ncs {
 
 struct ComponentStorage {
-    virtual void* GetComponent(Entity entity) = 0;
-    virtual void* AddComponent(Entity entity) = 0;
-    virtual bool RemoveComponent(Entity entity) = 0;
+    virtual void* GetComponent(Node node) = 0;
+    virtual void* AddComponent(Node node) = 0;
+    virtual bool RemoveComponent(Node node) = 0;
 };
 
+// Build-in storage.
 template <typename Component>
 struct ComponentBuffer : ComponentStorage {
-    std::unordered_map<Entity, Component> components;
+    std::unordered_map<Node, Component> components;
 
-    void* GetComponent(Entity entity) override
+    void* GetComponent(Node node) override
     {
-        auto component = components.find(entity);
+        auto component = components.find(node);
         if (component == components.end()) {
             return nullptr;
         }
         return &component->second;
     }
 
-    void* AddComponent(Entity entity) override
+    void* AddComponent(Node node) override
     {
-        return &components[entity];
+        return &components[node];
     }
 
-    bool RemoveComponent(Entity entity) override
+    bool RemoveComponent(Node node) override
     {
-        return (components.erase(entity) > 0);
+        return (components.erase(node) > 0);
     }
 };
 

@@ -2,7 +2,7 @@
 
 #include "Registry.hpp"
 
-namespace au::framework {
+namespace au::ncs {
 
 class System {
 public:
@@ -12,13 +12,9 @@ public:
     virtual void OnPrepare(Registry& registry) = 0;
     virtual void OnShutdown(Registry& registry) = 0;
 
-    virtual void OnPreTick(Registry& registry, float delta) = 0;
+    virtual void OnPrepTick(Registry& registry, float delta) = 0;
+    virtual void OnProcTick(Registry& registry, float delta) = 0;
     virtual void OnPostTick(Registry& registry, float delta) = 0;
-
-    virtual void OnTick(Registry& registry, float delta) = 0;
-
-    template <typename T>
-    using RegistryBasedContainer = std::unordered_map<Registry*, T>;
 };
 
 }

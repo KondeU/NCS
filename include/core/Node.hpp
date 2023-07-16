@@ -1,14 +1,14 @@
 #pragma once
 
-#include <cstdint>
+#include "Uuid.hpp"
 
-namespace au::framework {
+namespace au::ncs {
 
-class Entity {
+class Node {
 public:
-    using EntityId = uint32_t;
+    using Id = Uuid;
 
-    explicit constexpr Entity(EntityId id = 0) noexcept : id(id)
+    explicit constexpr Node(Id id = 0) noexcept : id(id)
     {
     }
 
@@ -17,13 +17,13 @@ public:
         return (id == 0);
     }
 
-    operator EntityId() const
+    operator Id() const
     {
         return id;
     }
 
 private:
-    EntityId id;
+    Id id;
 };
 
 }
@@ -31,10 +31,10 @@ private:
 namespace std {
 
 template <>
-struct hash<au::framework::Entity> {
-    au::framework::Entity::EntityId operator()(const au::framework::Entity& entity) const
+struct hash<au::ncs::Node> {
+    au::ncs::Node::Id operator()(const au::ncs::Node& node) const
     {
-        return entity;
+        return node;
     }
 };
 
