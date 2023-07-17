@@ -1,36 +1,30 @@
 #pragma once
 
-#include <typeinfo>
+#include <functional>
 #include "Component.hpp"
 
 namespace au::ncs {
 
 class Registry final {
 public:
-    using TypeHash = decltype(typeid(void).hash_code());
-
     template <typename Component>
-    bool RegistComponentStorage(ComponentStorage* storage)
+    bool RegisterComponentStorage(ComponentStorage* storage)
     {
         #if defined (DEBUG) || defined (_DEBUG)
-        componentNameHashMap[typeid(Component).name()] = typeid(Component).hash_code();
+        debugComponentNameHashMap[Component::ComponentName] = Component::ComponentUuid;
         #endif
-        AU_LOG_I(TAG, "Regist component storage, type name is `%s`, type hash is `%x`.",
-            typeid(Component).name(), typeid(Component).hash_code());
-        return storages.emplace(typeid(Component).hash_code(), storage).second;
+        return storages.emplace(Component::ComponentUuid, storage).second; // Failed if exist.
     }
 
     template <typename Component>
-    ComponentStorage* UnregistComponentStorage()
+    ComponentStorage* UnregisterComponentStorage()
     {
         #if defined (DEBUG) || defined (_DEBUG)
-        componentNameHashMap.erase(typeid(Component).name());
+        debugComponentNameHashMap.erase(Component::ComponentName);
         #endif
-        AU_LOG_I(TAG, "Unregist component storage, type name is `%s`, type hash is `%x`.",
-            typeid(Component).name(), typeid(Component).hash_code());
-        auto storage = storages.find(typeid(Component).hash_code());
+        auto storage = storages.find(Component::ComponentUuid);
         if (storage == storages.end()) {
-            return nullptr;
+            return nullptr; // Failed because storage is no exist.
         }
         auto output = storage->second;
         storages.erase(storage);
@@ -38,46 +32,40 @@ public:
     }
 
     template <typename Component>
-    Component* GetComponent(Node entity)
+    Component* GetComponent(Node node)
     {
-        if (entity.IsInvalid()) {
-            AU_LOG_RETN_E(TAG, "Get component failed, input entity is invalid!");
+        if (node.IsInvalid()) {
+            return nullptr; // Failed because input node is invalid.
         }
-        auto storage = storages.find(typeid(Component).hash_code());
+        auto storage = storages.find(Component::ComponentUuid);
         if (storage == storages.end()) {
-            AU_LOG_RETN_E(TAG, "Get component failed, the storage for current component is not "
-                "yet registered! Current component type name is `%s`, type hash is `%x`.",
-                typeid(Component).name(), typeid(Component).hash_code());
+            return nullptr; // Failed because storage is not yet registered.
         }
-        return static_cast<Component*>(storage->second->GetComponent(entity));
+        return static_cast<Component*>(storage->second->GetComponent(node));
     }
 
     template <typename Component>
-    Component* AddComponent(Node entity)
+    Component* AddComponent(Node node)
     {
-        if (entity.IsInvalid()) {
-            AU_LOG_RETN_E(TAG, "Add component failed, input entity is invalid!");
+        if (node.IsInvalid()) {
+            return nullptr; // Failed because input node is invalid.
         }
-        auto storage = storages.find(typeid(Component).hash_code());
+        auto storage = storages.find(Component::ComponentUuid);
         if (storage == storages.end()) {
-            AU_LOG_RETN_E(TAG, "Add component failed, the storage for current component is not "
-                "yet registered! Current component type name is `%s`, type hash is `%x`.",
-                typeid(Component).name(), typeid(Component).hash_code());
+            return nullptr; // Failed because storage is not yet registered.
         }
-        return static_cast<Component*>(storage->second->AddComponent(entity));
+        return static_cast<Component*>(storage->second->AddComponent(node));
     }
 
     template <typename Component>
     bool RemoveComponent(Node entity)
     {
         if (entity.IsInvalid()) {
-            AU_LOG_RETF_E(TAG, "Remove component failed, input entity is invalid!");
+            return false; // Failed because input node is invalid.
         }
-        auto storage = storages.find(typeid(Component).hash_code());
+        auto storage = storages.find(Component::ComponentUuid);
         if (storage == storages.end()) {
-            AU_LOG_RETN_E(TAG, "Remove component failed, the storage for current component is not "
-                "yet registered! Current component type name is `%s`, type hash is `%x`.",
-                typeid(Component).name(), typeid(Component).hash_code());
+            return false; // Failed because storage is not yet registered.
         }
         return storage->second->RemoveComponent(entity);
     }
@@ -87,25 +75,23 @@ public:
         return Node(gid++);
     }
 
-    void DestroyNode(Node entity)
+    void DestroyNode(Node node)
     {
         for (auto& [hash, storage] : storages) {
-            storage->RemoveComponent(entity);
+            storage->RemoveComponent(node);
         }
     }
 
     template <typename Component>
     bool ForEach(std::function<void(Node, Component&)> process)
     {
-        auto storage = storages.find(typeid(Component).hash_code());
+        auto storage = storages.find(Component::ComponentUuid);
         if (storage == storages.end()) {
-            AU_LOG_RETF_E(TAG, "ForEach failed, the storage for current component is not "
-                "yet registered! Current component type name is `%s`, type hash is `%x`.",
-                typeid(Component).name(), typeid(Component).hash_code());
+            return false; // Failed because storage is not yet registered.
         }
         if (auto buffer = dynamic_cast<ComponentBuffer<Component>*>(storage->second)) {
-            for (auto& [entity, component] : buffer->components) {
-                process(entity, component);
+            for (auto& [node, component] : buffer->components) {
+                process(node, component);
             }
         }
         return true;
@@ -113,9 +99,9 @@ public:
 
 private:
     #if defined (DEBUG) || defined (_DEBUG)
-    std::unordered_map<std::string, TypeHash> componentNameHashMap;
+    std::unordered_map<std::string, Uuid> debugComponentNameHashMap;
     #endif
-    std::unordered_map<TypeHash, ComponentStorage*> storages;
+    std::unordered_map<Uuid, ComponentStorage*> storages;
     Node::Id gid = 10; // The first ten IDs are reserved.
 };
 

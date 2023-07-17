@@ -3,10 +3,9 @@
 #include <unordered_map>
 #include "Node.hpp"
 
-#define COMPONENT(name) \
-static constexpr au::ncs::Name name##ComponentName = #name;            \
-static constexpr au::ncs::Uuid name##ComponentUuid = AU_CT_UUID(name); \
-struct name##Component final
+#define DEFINE_COMPONENT(name)                                 \
+static constexpr au::ncs::Name ComponentName = #name;          \
+static constexpr au::ncs::Uuid ComponentUuid = AU_CT_UUID(name);
 
 namespace au::ncs {
 
@@ -16,7 +15,6 @@ struct ComponentStorage {
     virtual bool RemoveComponent(Node node) = 0;
 };
 
-// Build-in storage.
 template <typename Component>
 struct ComponentBuffer : ComponentStorage {
     std::unordered_map<Node, Component> components;

@@ -12,12 +12,12 @@ public:
     {
     }
 
-    bool IsInvalid()
+    bool IsInvalid() const noexcept
     {
         return (id == 0);
     }
 
-    operator Id() const
+    operator Id() const noexcept
     {
         return id;
     }
@@ -32,7 +32,7 @@ namespace std {
 
 template <>
 struct hash<au::ncs::Node> {
-    au::ncs::Node::Id operator()(const au::ncs::Node& node) const
+    au::ncs::Node::Id operator()(const au::ncs::Node& node) const noexcept
     {
         return node;
     }
