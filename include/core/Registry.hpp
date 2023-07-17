@@ -1,7 +1,7 @@
 #pragma once
 
 #include <functional>
-#include "Component.hpp"
+#include "Viewer.hpp"
 
 namespace au::ncs {
 
@@ -77,7 +77,7 @@ public:
 
     void DestroyNode(Node node)
     {
-        for (auto& [hash, storage] : storages) {
+        for (auto& [uuid, storage] : storages) {
             storage->RemoveComponent(node);
         }
     }
