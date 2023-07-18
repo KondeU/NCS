@@ -5,7 +5,10 @@
 
 namespace au::ncs {
 
-class Registry final {
+class EmptyRelation;
+
+template <typename Relation = EmptyRelation>
+class Registry : public Relation {
 public:
     template <typename Component>
     bool RegisterComponentStorage(ComponentStorage* storage)
@@ -72,14 +75,20 @@ public:
 
     Node CreateNode()
     {
-        return Node(gid++);
+        Node node(gid++);
+        if (!Relation::OnNodeCreate(node, this)) {
+            return {}; // Return invalid node.
+        }
+        return node;
     }
 
-    void DestroyNode(Node node)
+    bool DestroyNode(Node node)
     {
+        bool success = Relation::OnNodeDestroy(node, this);
         for (auto& [uuid, storage] : storages) {
-            storage->RemoveComponent(node);
+            success &= storage->RemoveComponent(node);
         }
+        return success; // Destruction may not be clean if return false.
     }
 
     template <typename Component>
