@@ -106,6 +106,10 @@ public:
         return true;
     }
 
+    // Forbidden copying.
+    Registry(const Registry&) = delete;
+    Registry& operator=(const Registry&) = delete;
+
 private:
     #if defined (DEBUG) || defined (_DEBUG)
     std::unordered_map<std::string, Uuid> debugComponentNameHashMap;
