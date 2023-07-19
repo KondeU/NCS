@@ -27,65 +27,88 @@ public:
 
     TreeRelation()
     {
-        nodes.push_back({ Node(0), {} });
+        nodes[Node(0)] = {};
     }
 
     bool ReparentNode(Node node, Node parent)
     {
+        // Root node can not be reparented, and node can not be reparented to itself.
         if (node.IsInvalid() || (node == parent)) {
             return false;
         }
 
-        NodeRelation* nodeRelation = nullptr;
-        NodeRelation* parentRelation = nullptr;
-        for (auto& [current, relation] : nodes) {
-            if (current == node) {
-                nodeRelation = &relation;
-            }
-            if (current == parent) {
-                parentRelation = &relation;
-            }
-
-            if (nodeRelation && parentRelation) {
-                // Erase the node in the old parent's childs list.
-                auto oldParent = std::find(nodes.begin(), nodes.end(), nodeRelation->parent);
-                oldParent->second.childs.erase(std::find(
-                    oldParent->second.childs.begin(), oldParent->second.childs.end(), node));
-                // Set the node's new parent.
-                nodeRelation->parent = parent;
-                // Add the node to the new parent's childs list.
-                parentRelation->childs.emplace_back(node);
-                // Reparent finished.
-                return true;
-            }
+        auto nodeIter = nodes.find(node);
+        if (nodeIter == nodes.end()) {
+            return false;
         }
-        return false; // Failed, node or parent not found in the nodes list.
+        NodeRelation& nodeRelation = nodeIter->second;
+
+        // Parent no change.
+        if (nodeRelation.parent == parent) {
+            return true;
+        }
+
+        auto oldParentIter = nodes.find(nodeRelation.parent);
+        if (oldParentIter == nodes.end()) {
+            return false; // Internal logic error maybe occur if run here.
+        }
+        NodeRelation& oldParentRelation = oldParentIter->second;
+
+        auto newParentIter = nodes.find(parent);
+        if (newParentIter == nodes.end()) {
+            return false;
+        }
+        NodeRelation& newParentRelation = newParentIter->second;
+
+        // Erase the node in the old parent relation's childs list.
+        oldParentRelation.childs.erase(std::find(
+            oldParentRelation.childs.begin(), oldParentRelation.childs.end(), node));
+        // Set the node's new parent.
+        nodeRelation.parent = parent;
+        // Add the node to the new parent relation's childs list.
+        newParentRelation.childs.emplace_back(node);
+
+        return true;
     }
 
 protected:
     bool OnNodeCreate(Node node, Registry<TreeRelation>& registry)
     {
-        nodes.push_back({ node, {} });
-        std::find(nodes.begin(), nodes.end(), Node(0))->second.childs.emplace_back(node);
+        nodes[node] = {};
+        nodes[Node(0)].childs.emplace_back(node);
         return true;
     }
 
     bool OnNodeDestroy(Node node, Registry<TreeRelation>& registry)
     {
-        auto& nodeRelation = std::find(nodes.begin(), nodes.end(), node)->second;
-        auto& parentRelation = std::find(nodes.begin(), nodes.end(), nodeRelation.parent)->second;
-        for (auto it = parentRelation.childs.begin(); it != parentRelation.childs.end(); it++) {
-            if (*it == node) {
-                parentRelation.childs.erase(it);
-                break;
-            }
+        auto nodeIter = nodes.find(node);
+        if (nodeIter == nodes.end()) {
+            return false;
         }
-        // Destroy...
-        return true;
+        NodeRelation& nodeRelation = nodeIter->second;
+
+        auto parentIter = nodes.find(nodeRelation.parent);
+        if (parentIter == nodes.end()) {
+            return false; // Internal logic error maybe occur if run here.
+        }
+        NodeRelation& parentRelation = parentIter->second;
+
+        // Erase the node in the parent relation's childs list.
+        parentRelation.childs.erase(std::find(
+            parentRelation.childs.begin(), parentRelation.childs.end(), node));
+
+        // Destroy childs.
+        bool success = true;
+        for (const auto& child : nodeRelation.childs) {
+            success &= registry.DestroyNode(child);
+        }
+
+        nodes.erase(nodeIter);
+        return success;
     }
 
 private:
-    std::vector<std::pair<Node, NodeRelation>> nodes;
+    std::unordered_map<Node, NodeRelation> nodes;
 };
 
 class UnorderedTreeRelation {
