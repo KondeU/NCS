@@ -77,7 +77,7 @@ public:
     {
         Node node(gid++);
         if (!Relation::OnNodeCreate(node, this)) {
-            return {}; // Return invalid node.
+            return INVALID_NODE;
         }
         return node;
     }
@@ -105,6 +105,10 @@ public:
         }
         return true;
     }
+
+    // Internal node ID.
+    static constexpr Node INVALID_NODE      = Node(0);
+    static constexpr Node DEFAULT_ROOT_NODE = Node(1);
 
     // Forbidden copying.
     Registry(const Registry&) = delete;
