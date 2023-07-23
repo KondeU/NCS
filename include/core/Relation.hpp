@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_set>
 #include "Registry.hpp"
 
 namespace au::ncs {

@@ -4,7 +4,7 @@
 
 namespace au::ncs {
 
-class Node {
+class Node final {
 public:
     using Id = Uuid;
 
