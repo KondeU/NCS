@@ -29,6 +29,9 @@ public:
         nodes[Registry<TreeRelation>::DEFAULT_ROOT_NODE];
     }
 
+    // ReparentNode DOES NOT do a ring verification (new parent can not be the child or child's
+    // child), because the ring verification is very time-consuming, it will traverse all nodes
+    // children and child's children.
     bool ReparentNode(Node node, Node parent)
     {
         // Invalid node can not be reparented, and node can not be reparented to itself.
@@ -136,6 +139,9 @@ public:
         nodes[Registry<UnorderedTreeRelation>::DEFAULT_ROOT_NODE];
     }
 
+    // ReparentNode DOES NOT do a ring verification (new parent can not be the child or child's
+    // child), because the ring verification is very time-consuming, it will traverse all nodes
+    // children and child's children.
     bool ReparentNode(Node node, Node parent)
     {
         // Invalid node can not be reparented, and node can not be reparented to itself.
