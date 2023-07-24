@@ -7,8 +7,7 @@ namespace au::ncs {
 template <typename Relation>
 class System {
 public:
-    virtual void OnCreate() = 0;
-    virtual void OnDestroy() = 0;
+    virtual ~System() = default;
 
     virtual void OnPrepare(Registry<Relation>& registry) = 0;
     virtual void OnShutdown(Registry<Relation>& registry) = 0;
