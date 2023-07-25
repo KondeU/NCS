@@ -26,7 +26,7 @@ public:
 
     TreeRelation()
     {
-        nodes[Registry<TreeRelation>::DEFAULT_ROOT_NODE];
+        nodes[DEFAULT_ROOT_NODE];
     }
 
     // ReparentNode DOES NOT do a ring verification (new parent can not be the child or child's
@@ -76,22 +76,20 @@ public:
     Node GetParentNode(Node node)
     {
         auto iter = nodes.find(node);
-        return (iter != nodes.end()) ?
-            iter->second.parent : Registry<TreeRelation>::INVALID_NODE;
+        return (iter != nodes.end()) ? iter->second.parent : INVALID_NODE;
     }
 
     const std::vector<Node>& GetChildrenNodes(Node node)
     {
         auto iter = nodes.find(node);
-        return (iter != nodes.end()) ?
-            iter->second.childs : nodes[Registry<TreeRelation>::INVALID_NODE].childs;
+        return (iter != nodes.end()) ? iter->second.childs : nodes[INVALID_NODE].childs;
     }
 
 protected:
     bool OnNodeCreate(Node node, Registry<TreeRelation>& registry)
     {
-        nodes[node] = { Registry<TreeRelation>::DEFAULT_ROOT_NODE };
-        nodes[Registry<TreeRelation>::DEFAULT_ROOT_NODE].childs.emplace_back(node);
+        nodes[node] = { DEFAULT_ROOT_NODE };
+        nodes[DEFAULT_ROOT_NODE].childs.emplace_back(node);
         return true;
     }
 
@@ -136,7 +134,7 @@ public:
 
     UnorderedTreeRelation()
     {
-        nodes[Registry<UnorderedTreeRelation>::DEFAULT_ROOT_NODE];
+        nodes[DEFAULT_ROOT_NODE];
     }
 
     // ReparentNode DOES NOT do a ring verification (new parent can not be the child or child's
@@ -185,22 +183,20 @@ public:
     Node GetParentNode(Node node)
     {
         auto iter = nodes.find(node);
-        return (iter != nodes.end()) ?
-            iter->second.parent : Registry<UnorderedTreeRelation>::INVALID_NODE;
+        return (iter != nodes.end()) ? iter->second.parent : INVALID_NODE;
     }
 
     const std::unordered_set<Node>& GetChildrenNodes(Node node)
     {
         auto iter = nodes.find(node);
-        return (iter != nodes.end()) ?
-            iter->second.childs : nodes[Registry<UnorderedTreeRelation>::INVALID_NODE].childs;
+        return (iter != nodes.end()) ? iter->second.childs : nodes[INVALID_NODE].childs;
     }
 
 protected:
     bool OnNodeCreate(Node node, Registry<UnorderedTreeRelation>& registry)
     {
-        nodes[node] = { Registry<UnorderedTreeRelation>::DEFAULT_ROOT_NODE };
-        nodes[Registry<UnorderedTreeRelation>::DEFAULT_ROOT_NODE].childs.insert(node);
+        nodes[node] = { DEFAULT_ROOT_NODE };
+        nodes[DEFAULT_ROOT_NODE].childs.insert(node);
         return true;
     }
 

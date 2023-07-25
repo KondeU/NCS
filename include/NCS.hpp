@@ -9,10 +9,10 @@ namespace au::ncs {
 template <typename Relation>
 class Scene {
 public:
-    Scene()
-    {
-        timestamp = std::chrono::steady_clock::now();
-    }
+    //Scene()
+    //{
+    //    timestamp = std::chrono::steady_clock::now();
+    //}
 
     Registry<Relation>& GetRegistry()
     {
@@ -21,7 +21,7 @@ public:
 
     Node GetDefaultRootNode() const
     {
-        return Registry<Relation>::DEFAULT_ROOT_NODE;
+        return DEFAULT_ROOT_NODE;
     }
 
     bool RegisterSystem(System<Relation>& system)

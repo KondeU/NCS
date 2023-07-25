@@ -171,10 +171,6 @@ public:
         viewers.erase(&viewer);
     }
 
-    // Internal node ID:
-    static constexpr Node INVALID_NODE      = Node(0);
-    static constexpr Node DEFAULT_ROOT_NODE = Node(1);
-
     // Forbidden copying.
     Registry(const Registry&) = delete;
     Registry& operator=(const Registry&) = delete;
@@ -187,5 +183,9 @@ private:
     Node::Id gid = 10; // The first ten IDs are reserved.
     std::unordered_set<ViewFilter*> viewers;
 };
+
+// Internal node ID:
+static constexpr Node INVALID_NODE = Node(0);
+static constexpr Node DEFAULT_ROOT_NODE = Node(1);
 
 }

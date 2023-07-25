@@ -44,7 +44,7 @@ struct ComponentBuffer : ComponentStorage {
         std::vector<Node> nodes;
         nodes.reserve(components.size());
         for (const auto& component : components) {
-            nodes.emplace_back(component->first);
+            nodes.emplace_back(component.first);
         }
         return nodes;
     }
