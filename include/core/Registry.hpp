@@ -102,7 +102,7 @@ public:
     Node CreateNode()
     {
         Node node(gid++);
-        if (!Relation::OnNodeCreate(node, this)) {
+        if (!Relation::OnNodeCreate(node, *this)) {
             return INVALID_NODE;
         }
         return node;
@@ -110,7 +110,7 @@ public:
 
     bool DestroyNode(Node node)
     {
-        bool success = Relation::OnNodeDestroy(node, this);
+        bool success = Relation::OnNodeDestroy(node, *this);
         for (auto& [uuid, storage] : storages) {
             success &= storage->RemoveComponent(node);
         }

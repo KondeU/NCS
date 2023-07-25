@@ -8,7 +8,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 include_directories(include)
 file(GLOB_RECURSE INC include/*)
 
-add_subdirectory(sample)
 add_subdirectory(test)
 
 install(FILES LICENSE.txt DESTINATION .)

@@ -9,6 +9,11 @@ namespace au::ncs {
 template <typename Relation>
 class Scene {
 public:
+    Scene()
+    {
+        timestamp = std::chrono::steady_clock::now();
+    }
+
     Registry<Relation>& GetRegistry()
     {
         return registry;
@@ -58,9 +63,6 @@ public:
         }
     }
 
-    // TODO: Viewer
-
-
 private:
     Registry<Relation> registry;
     std::vector<System<Relation>*> systems;
@@ -68,6 +70,10 @@ private:
 };
 
 using TreeScene = Scene<TreeRelation>;
+using TreeSystem = System<TreeRelation>;
+using TreeRegistry = Registry<TreeRelation>;
 using UnorderedTreeScene = Scene<UnorderedTreeRelation>;
+using UnorderedTreeSystem = System<UnorderedTreeRelation>;
+using UnorderedTreeRegistry = Registry<UnorderedTreeRelation>;
 
 }
