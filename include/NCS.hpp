@@ -9,10 +9,10 @@ namespace au::ncs {
 template <typename Relation>
 class Scene {
 public:
-    //Scene()
-    //{
-    //    timestamp = std::chrono::steady_clock::now();
-    //}
+    Scene()
+    {
+        timestamp = std::chrono::steady_clock::now();
+    }
 
     Registry<Relation>& GetRegistry()
     {

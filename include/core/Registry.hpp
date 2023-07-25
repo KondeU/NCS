@@ -8,6 +8,8 @@ namespace au::ncs {
 template <typename Relation>
 class Registry : public Relation, public ViewBinder {
 public:
+    Registry() = default;
+
     template <typename Component>
     bool RegisterComponentStorage(ComponentStorage* storage)
     {
@@ -62,7 +64,7 @@ public:
                 continue; // Next viewer.
             }
             bool addNodeToViewer = true;
-            for (const auto& type : viewer.GetComponentTypes()) {
+            for (const auto& type : viewer->GetComponentTypes()) {
                 if (type == Component::ComponentUuid) {
                     continue; // Skip current component type.
                 }
