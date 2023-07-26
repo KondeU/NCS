@@ -60,7 +60,7 @@ public:
         }
         auto component = static_cast<Component*>(storage->second->AddComponent(node));
         for (auto viewer : viewers) {
-            if (!viewer->HasComponentType(Component::ComponentUuid)) {
+            if (!viewer->HasType(Component::ComponentUuid)) {
                 continue; // Next viewer.
             }
             bool addNodeToViewer = true;

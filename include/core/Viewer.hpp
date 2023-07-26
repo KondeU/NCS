@@ -17,7 +17,7 @@ public:
         return filter;
     }
 
-    bool HasComponentType(Uuid componentTypeUuid) const
+    bool HasType(Uuid componentTypeUuid) const
     {
         return (filter.find(componentTypeUuid) != filter.end());
     }
@@ -57,7 +57,7 @@ public:
     template <typename Component>
     bool HasComponentType() const
     {
-        return HasComponentType(Component::ComponentUuid);
+        return HasType(Component::ComponentUuid);
     }
 
     void AddNode(Node node) override

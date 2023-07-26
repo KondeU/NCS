@@ -1,7 +1,67 @@
 #include "TestCommon.hpp"
-#include "TestSystem.hpp"
-#include "TestComponent.hpp"
-#include "TestRelation.hpp"
+#include "NCS.hpp"
+
+struct Component1 {
+    DEFINE_COMPONENT(Component1);
+    double vd = 1.0;
+    float vf = 2.0f;
+    int vi = 3;
+};
+
+struct Component2 {
+    DEFINE_COMPONENT(Component2);
+    std::vector<float> vec{ 1.0f, 1.0f, 1.0f, 0.0f };
+};
+
+struct Component3 {
+    DEFINE_COMPONENT(Component3);
+    int arr[4] = { 255, 255, 255, 0 };
+};
+
+class System1 : public au::ncs::UnorderedTreeSystem {
+public:
+    // The following functions can be considered as mook and should
+    // only be used for testing purposes, not used in business logic.
+    au::ncs::Viewer<Component1, Component2>& GetViewer()
+    {
+        return *viewer;
+    }
+
+    ~System1() override
+    {
+    }
+
+protected:
+    void OnPrepare(au::ncs::UnorderedTreeRegistry& registry) override
+    {
+        viewer = std::make_unique<au::ncs::Viewer<Component1, Component2>>(registry);
+        TEST(viewer->HasComponentType<Component1>());
+        TEST(viewer->HasComponentType<Component2>());
+        TEST(viewer->HasComponentType<Component3>() == false);
+        TEST(viewer->HasType(Component1::ComponentUuid));
+        TEST(viewer->HasType(Component2::ComponentUuid));
+        TEST(viewer->HasType(Component3::ComponentUuid) == false);
+    }
+
+    void OnShutdown(au::ncs::UnorderedTreeRegistry& registry) override
+    {
+    }
+
+    void OnPrepTick(au::ncs::UnorderedTreeRegistry& registry, float delta) override
+    {
+    }
+
+    void OnProcTick(au::ncs::UnorderedTreeRegistry& registry, float delta) override
+    {
+    }
+
+    void OnPostTick(au::ncs::UnorderedTreeRegistry& registry, float delta) override
+    {
+    }
+
+private:
+    std::unique_ptr<au::ncs::Viewer<Component1, Component2>> viewer;
+};
 
 void TEST_GROUP_1()
 {
@@ -40,8 +100,20 @@ void TEST_GROUP_3()
 
     node1comp1 = registry.AddComponent<Component1>(node1);
     TEST(node1comp1 != nullptr);
+    TEST(registry.GetComponent<Component1>(node1) == node1comp1);
+    TEST(registry.AddComponent<Component1>(node1) == node1comp1);
 
-    // TODO: more test cases...
+    System1 system1;
+    TEST(scene.RegisterSystem(system1));
+    TEST(scene.RegisterSystem(system1) == false);
+    auto& system1viewer = system1.GetViewer();
+
+    Component2* node1comp2 = registry.AddComponent<Component2>(node1);
+    system1viewer.ForEach([&](au::ncs::Node node) {
+        TEST(node == node1);
+    });
+
+    // more test cases...
 
     static constexpr int TestLoopCount = 2;
     for (int i = 0; i < TestLoopCount; i++) {

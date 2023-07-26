@@ -30,7 +30,7 @@ public:
         if (iter != systems.end()) {
             return false; // System has been registered.
         }
-        system.OnPrepare();
+        system.OnPrepare(registry);
         systems.emplace_back(&system);
         return true;
     }
@@ -42,7 +42,7 @@ public:
             return false; // System has not been registered.
         }
         systems.erase(iter);
-        system.OnShutdown();
+        system.OnShutdown(registry);
         return true;
     }
 
@@ -69,9 +69,14 @@ private:
     std::chrono::steady_clock::time_point timestamp;
 };
 
+using SimpleScene = Scene<EmptyRelation>;
+using SimpleSystem = System<EmptyRelation>;
+using SimpleRegistry = Registry<EmptyRelation>;
+
 using TreeScene = Scene<TreeRelation>;
 using TreeSystem = System<TreeRelation>;
 using TreeRegistry = Registry<TreeRelation>;
+
 using UnorderedTreeScene = Scene<UnorderedTreeRelation>;
 using UnorderedTreeSystem = System<UnorderedTreeRelation>;
 using UnorderedTreeRegistry = Registry<UnorderedTreeRelation>;
