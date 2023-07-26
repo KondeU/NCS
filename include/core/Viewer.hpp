@@ -44,7 +44,7 @@ template <typename ...Components>
 class Viewer : public ViewFilter {
 public:
     // The number of Viewer will affect node-component-system framework performance.
-    explicit Viewer(ViewBinder& binder) : binder(binder), filter({ Components::ComponentUuid... })
+    explicit Viewer(ViewBinder& binder) : ViewFilter({ Components::ComponentUuid... }), binder(binder)
     {
         binder.BindViewerToRegistry(*this);
     }
