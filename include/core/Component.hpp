@@ -10,6 +10,7 @@ static constexpr au::ncs::Uuid ComponentUuid = AU_CT_UUID(name);
 namespace au::ncs {
 
 struct ComponentStorage {
+    virtual Uuid GetType() const = 0;
     virtual void* GetComponent(Node node) = 0;
     virtual void* AddComponent(Node node) = 0;
     virtual bool RemoveComponent(Node node) = 0;
@@ -19,6 +20,11 @@ struct ComponentStorage {
 template <typename Component>
 struct ComponentBuffer : ComponentStorage {
     std::unordered_map<Node, Component> components;
+
+    Uuid GetType() const override
+    {
+        return Component::ComponentUuid;
+    }
 
     void* GetComponent(Node node) override
     {

@@ -16,6 +16,9 @@ public:
         #if defined (DEBUG) || defined (_DEBUG)
         debugComponentNameHashMap[Component::ComponentName] = Component::ComponentUuid;
         #endif
+        if (Component::ComponentUuid != storage->GetType()) {
+            return false;
+        }
         return storages.emplace(Component::ComponentUuid, storage).second; // Failed if exist.
     }
 
@@ -94,7 +97,7 @@ public:
         }
         bool removed = storage->second->RemoveComponent(node);
         for (auto viewer : viewers) {
-            if (viewer->HasComponentType(Component::ComponentUuid)) {
+            if (viewer->HasType(Component::ComponentUuid)) {
                 viewer->RemoveNode(node);
             }
         }
