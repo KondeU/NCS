@@ -5,6 +5,9 @@
 
 namespace au::ncs {
 
+static constexpr Node INVALID_NODE = Node(0);
+static constexpr Node DEFAULT_ROOT_NODE = Node(1);
+
 template <typename Relation>
 class Registry : public Relation, public ViewBinder {
 public:
@@ -188,9 +191,5 @@ private:
     Node::Id gid = 10; // The first ten IDs are reserved.
     std::unordered_set<ViewFilter*> viewers;
 };
-
-// Internal node ID:
-static constexpr Node INVALID_NODE = Node(0);
-static constexpr Node DEFAULT_ROOT_NODE = Node(1);
 
 }
