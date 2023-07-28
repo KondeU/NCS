@@ -132,12 +132,9 @@ public:
         if (storage == storages.end()) {
             return false; // Failed because storage is not yet registered.
         }
-        if (auto buffer = dynamic_cast<ComponentBuffer<Component>*>(storage->second)) {
-            for (auto& [node, component] : buffer->components) {
-                process(node, component);
-            }
-        } else {          // Internal logic error maybe occur if run here,
-            return false; // because UUID and ComponentBuffer correspond one-to-one.
+        auto buffer = static_cast<ComponentBuffer<Component>*>(storage->second);
+        for (auto& [node, component] : buffer->components) {
+            process(node, component);
         }
         return true;
     }
