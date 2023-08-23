@@ -13,7 +13,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: build ncs test demo on windows
       shell: bash
-      run: ./build.sh -b Release
+      run: ./build.sh -b=Release
     - uses: actions/upload-artifact@v3
       with:
         name: NCS
