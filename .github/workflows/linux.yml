@@ -14,7 +14,7 @@ jobs:
       shell: bash
       run: |
         chmod 777 build.sh
-        ./build.sh -b Release
+        ./build.sh -b=Release
     - uses: actions/upload-artifact@v3
       with:
         name: NCS
