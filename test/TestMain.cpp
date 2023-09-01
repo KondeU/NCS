@@ -67,7 +67,7 @@ void TEST_GROUP_1()
 {
     au::ncs::UnorderedTreeScene scene;
     au::ncs::UnorderedTreeRegistry& registry = scene.GetRegistry();
-    TEST(scene.GetDefaultRootNode() == au::ncs::DEFAULT_ROOT_NODE);
+    TEST(au::ncs::Node() == au::ncs::INVALID_NODE);
 
     au::ncs::Node node1 = registry.CreateNode();
     TEST(registry.GetParentNode(node1) == au::ncs::DEFAULT_ROOT_NODE);

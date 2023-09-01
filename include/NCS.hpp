@@ -19,11 +19,6 @@ public:
         return registry;
     }
 
-    Node GetDefaultRootNode() const
-    {
-        return DEFAULT_ROOT_NODE;
-    }
-
     bool RegisterSystem(System<Relation>& system)
     {
         auto iter = std::find(systems.begin(), systems.end(), &system);
