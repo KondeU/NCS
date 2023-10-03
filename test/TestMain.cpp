@@ -93,11 +93,13 @@ void TEST_GROUP_1()
     au::ncs::ComponentBuffer<Component3> comp3buffers;
     TEST(registry.RegisterComponentStorage<Component2>(&comp2buffers));
     TEST(registry.RegisterComponentStorage<Component3>(&comp3buffers));
+    TEST(registry.GetComponentSize<Component1>() == 0);
 
     node1comp1 = registry.AddComponent<Component1>(node1);
     TEST(node1comp1 != nullptr);
     TEST(registry.GetComponent<Component1>(node1) == node1comp1);
     TEST(registry.AddComponent<Component1>(node1) == node1comp1);
+    TEST(registry.GetComponentSize<Component1>() == 1);
 
     System1 system1;
     TEST(scene.RegisterSystem(system1));
@@ -108,11 +110,15 @@ void TEST_GROUP_1()
     Component1* node2comp1 = registry.AddComponent<Component1>(node2);
     Component2* node2comp2 = registry.AddComponent<Component2>(node2);
     TEST((node1comp2 != nullptr) && (node2comp1 != nullptr) && (node2comp2 != nullptr));
+    TEST(registry.GetComponentSize<Component1>() == 2);
+    TEST(registry.GetComponentSize<Component2>() == 2);
     TEST(registry.RemoveComponent<Component2>(node2));
+    TEST(registry.GetComponentSize<Component2>() == 1);
 
     system1viewer.ForEach([&](au::ncs::Node node) {
         TEST(node == node1);
     });
+    TEST(system1viewer.GetSize() == 1);
 
     node2comp2 = registry.AddComponent<Component2>(node2);
     TEST(node1comp2 != nullptr);
@@ -122,6 +128,7 @@ void TEST_GROUP_1()
             check.insert(node);
         });
         TEST(check == benchmark);
+        TEST(system1viewer.GetSize() == benchmark.size());
     }
 
     Component3* node1comp3 = registry.AddComponent<Component3>(node1);

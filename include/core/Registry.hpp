@@ -107,6 +107,16 @@ public:
         return removed;
     }
 
+    template <typename Component>
+    size_t GetComponentSize() const
+    {
+        auto storage = storages.find(Component::ComponentUuid);
+        if (storage == storages.end()) {
+            return 0; // Failed because storage is not yet registered.
+        }
+        return storage->second->GetSize();
+    }
+
     Node CreateNode()
     {
         Node node(gid++);

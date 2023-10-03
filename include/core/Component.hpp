@@ -15,6 +15,7 @@ struct ComponentStorage {
     virtual void* AddComponent(Node node) = 0;
     virtual bool RemoveComponent(Node node) = 0;
     virtual std::vector<Node> GetNodes() const = 0;
+    virtual size_t GetSize() const = 0;
 };
 
 template <typename Component>
@@ -53,6 +54,11 @@ struct ComponentBuffer : ComponentStorage {
             nodes.emplace_back(component.first);
         }
         return nodes;
+    }
+
+    size_t GetSize() const override
+    {
+        return components.size();
     }
 };
 

@@ -76,6 +76,11 @@ public:
         nodes.clear();
     }
 
+    size_t GetSize() const
+    {
+        return nodes.size();
+    }
+
     void ForEach(std::function<void(Node)> process)
     {
         for (const auto& node : nodes) {
