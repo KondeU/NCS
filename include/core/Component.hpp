@@ -3,9 +3,9 @@
 #include <unordered_map>
 #include "Node.hpp"
 
-#define DEFINE_COMPONENT(name)                                 \
-static constexpr au::ncs::Name ComponentName = #name;          \
-static constexpr au::ncs::Uuid ComponentUuid = AU_CT_UUID(name);
+#define DEFINE_COMPONENT(name)                                  \
+static constexpr au::ncs::Name ComponentName = #name;           \
+static constexpr au::ncs::Uuid ComponentUuid = AU_CT_UUID(#name);
 
 namespace au::ncs {
 

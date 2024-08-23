@@ -24,5 +24,5 @@ struct EnsureConst
 }
 
 // 0xEE6B27EB : golden seed constant, prime number in four billion
-#define AU_CT_UUID(name) (au::ncs::EnsureConst<au::ncs::MakeUuid(#name, 0xEE6B27EB)>::V)
-#define AU_RT_UUID(name) (au::ncs::MakeUuid(#name, 0xEE6B27EB))
+#define AU_CT_UUID(name) (au::ncs::EnsureConst<au::ncs::MakeUuid(name, 0xEE6B27EB)>::V)
+#define AU_RT_UUID(name) (au::ncs::MakeUuid(name, 0xEE6B27EB))
