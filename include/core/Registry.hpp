@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include "Viewer.hpp"
+#include "Platform.hpp"
 
 namespace au::ncs {
 
@@ -19,8 +20,8 @@ public:
         #if defined (DEBUG) || defined (_DEBUG)
         debugComponentNameHashMap[Component::ComponentName] = Component::ComponentUuid;
         #endif
-        if (Component::ComponentUuid != storage->GetType()) {
-            return false;
+        rt_assert_if (Component::ComponentUuid == storage->GetType()) {
+            return false; // Failed because storage type mismatch.
         }
         return storages.emplace(Component::ComponentUuid, storage).second; // Failed if exist.
     }
@@ -47,7 +48,7 @@ public:
             return nullptr; // Failed because input node is invalid.
         }
         auto storage = storages.find(Component::ComponentUuid);
-        if (storage == storages.end()) {
+        if_unlikely (storage == storages.end()) {
             return nullptr; // Failed because storage is not yet registered.
         }
         auto component = static_cast<Component*>(storage->second->GetComponent(node));
@@ -61,7 +62,7 @@ public:
             return nullptr; // Failed because input node is invalid.
         }
         auto storage = storages.find(Component::ComponentUuid);
-        if (storage == storages.end()) {
+        if_unlikely (storage == storages.end()) {
             return nullptr; // Failed because storage is not yet registered.
         }
         auto component = static_cast<Component*>(storage->second->AddComponent(node));
@@ -95,7 +96,7 @@ public:
             return false; // Failed because input node is invalid.
         }
         auto storage = storages.find(Component::ComponentUuid);
-        if (storage == storages.end()) {
+        if_unlikely (storage == storages.end()) {
             return false; // Failed because storage is not yet registered.
         }
         bool removed = storage->second->RemoveComponent(node);
@@ -111,7 +112,7 @@ public:
     size_t GetComponentSize() const
     {
         auto storage = storages.find(Component::ComponentUuid);
-        if (storage == storages.end()) {
+        if_unlikely (storage == storages.end()) {
             return 0; // Failed because storage is not yet registered.
         }
         return storage->second->GetSize();
@@ -139,7 +140,7 @@ public:
     bool ForEach(std::function<void(Node, Component&)> process)
     {
         auto storage = storages.find(Component::ComponentUuid);
-        if (storage == storages.end()) {
+        if_unlikely (storage == storages.end()) {
             return false; // Failed because storage is not yet registered.
         }
         auto buffer = static_cast<ComponentBuffer<Component>*>(storage->second);

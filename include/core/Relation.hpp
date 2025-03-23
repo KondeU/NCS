@@ -51,7 +51,7 @@ public:
         }
 
         auto oldParentIter = nodes.find(nodeRelation.parent);
-        if (oldParentIter == nodes.end()) {
+        rt_assert_if (oldParentIter != nodes.end()) {
             return false; // Internal logic error maybe occur if run here.
         }
         NodeRelation& oldParentRelation = oldParentIter->second;
@@ -102,7 +102,7 @@ protected:
         NodeRelation& nodeRelation = nodeIter->second;
 
         auto parentIter = nodes.find(nodeRelation.parent);
-        if (parentIter == nodes.end()) {
+        rt_assert_if (parentIter != nodes.end()) {
             return false; // Internal logic error maybe occur if run here.
         }
         NodeRelation& parentRelation = parentIter->second;
@@ -159,7 +159,7 @@ public:
         }
 
         auto oldParentIter = nodes.find(nodeRelation.parent);
-        if (oldParentIter == nodes.end()) {
+        rt_assert_if (oldParentIter != nodes.end()) {
             return false; // Internal logic error maybe occur if run here.
         }
         NodeRelation& oldParentRelation = oldParentIter->second;
@@ -209,7 +209,7 @@ protected:
         NodeRelation& nodeRelation = nodeIter->second;
 
         auto parentIter = nodes.find(nodeRelation.parent);
-        if (parentIter == nodes.end()) {
+        rt_assert_if (parentIter != nodes.end()) {
             return false; // Internal logic error maybe occur if run here.
         }
         NodeRelation& parentRelation = parentIter->second;
