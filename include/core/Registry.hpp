@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include "Viewer.hpp"
-#include "Platform.hpp"
 
 namespace au::ncs {
 
