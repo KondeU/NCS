@@ -22,37 +22,31 @@ struct ComponentStorage {
 template <typename Component>
 struct ComponentBuffer : ComponentStorage {
     struct SkipFields final {
-        uint32_t fields[4]{};
+        uint32_t fields = 0;
 
         inline bool IsAllUsed() const noexcept
         {
-            return ((fields[0] & fields[1] & fields[2] & fields[3]) == ~0U);
+            return fields == ~0U;
         }
 
         inline bool IsAllFree() const noexcept
         {
-            return ((fields[0] | fields[1] | fields[2] | fields[3]) == 0U);
+            return fields == 0U;
         }
 
-        inline void MarkUsedBit(int field, int bit) noexcept
+        inline void MarkUsedBit(int bit) noexcept
         {
-            fields[field] |= 1 << bit;
+            fields |= 1 << bit;
         }
 
-        inline void MarkFreeBit(int field, int bit) noexcept
+        inline void MarkFreeBit(int bit) noexcept
         {
-            fields[field] &= ~(1 << bit);
+            fields &= ~(1 << bit);
         }
 
-        inline bool FindFreeBit(int& field, int& bit) const
+        inline int FindFreeBit() const
         {
-            for (field = 0; field < 4; field++) {
-                bit = FindZeroBit(fields[field]);
-                if (bit >= 0) {
-                    return true;
-                }
-            }
-            return false;
+            return FindZeroBit(fields); // Return -1 if free bit is not found.
         }
 
         static inline int FindZeroBit(uint32_t bits)
@@ -81,14 +75,18 @@ struct ComponentBuffer : ComponentStorage {
         uint8_t data[sizeof(Component)];
         ct_assert(sizeof(Node) == sizeof(Uuid)); // Unit is aligned to sizeof(Uuid).
 
-        inline Component* Construct()
+        inline Component* Construct(Node componentBelongedNode)
         {
+            node = componentBelongedNode;
             return (new (ComponentPointer()) Component);
         }
 
         inline void Destruct()
         {
             ComponentPointer()->~Component();
+            #if defined(DEBUG) || defined(_DEBUG)
+            node = INVALID_NODE;
+            #endif
         }
 
         inline Component* ComponentPointer() noexcept
@@ -99,7 +97,7 @@ struct ComponentBuffer : ComponentStorage {
 
     struct Block final {
         SkipFields skipFields;
-        Unit units[4 * 32]{}; // uint32_t[4]
+        Unit units[32]{}; // skipFields.fields is uint32_t, 32 bits.
 
         inline bool IsFull() const noexcept
         {
@@ -113,34 +111,27 @@ struct ComponentBuffer : ComponentStorage {
 
         inline Unit* FindFree()
         {
-            int field = 0, bit = 0;
-            if (!skipFields.FindFreeBit(field, bit)) {
+            int index = skipFields.FindFreeBit();
+            if (index < 0) {
                 return nullptr; // Not found free bit.
             }
-            skipFields.MarkUsedBit(field, bit);
-            return &units[field * 32 + bit];
+            skipFields.MarkUsedBit(index);
+            return &units[index];
         }
 
         inline bool TryFree(Unit* unit)
         {
-            size_t elements = unit - &units[0];
-            if (!(elements < 4 * 32)) {
+            int index = unit - &units[0]; // Elements diff count.
+            if (!(static_cast<unsigned int>(index) < 32U)) {
                 return false; // Not in this block.
             }
-            int field = elements / 32;
-            int bit   = elements % 32;
-            skipFields.MarkFreeBit(field, bit);
+            skipFields.MarkFreeBit(index);
             return true;
         }
     };
 
     std::list<Block> blocks; // Container.
     std::unordered_map<Node, Unit*> finder;
-
-    ComponentBuffer()
-    {
-        blocks.emplace_back();
-    }
 
     Uuid GetType() const override
     {
@@ -158,23 +149,60 @@ struct ComponentBuffer : ComponentStorage {
 
     void* AddComponent(Node node) override
     {
-        //auto& component = components[node];
-        //if (component) {
-        //    return component;
-        //}
+        auto block = blocks.begin();
+        while (block != blocks.end()) {
+            if (block->IsFull()) {
+                block++;
+            } else {
+                break;
+            }
+        }
+        if (block == blocks.end()) {
+            blocks.emplace_back();
+            block = std::prev(blocks.end());
+        }
+
+        auto unit = block->FindFree();
+        rt_assert_if (unit) {
+            return nullptr; // Internal logic error, block is not full but find free failed.
+        }
+        finder[node] = unit;
+        return unit->Construct(node);
     }
 
     bool RemoveComponent(Node node) override
     {
-        //return (components.erase(node) > 0);
+        auto iter = finder.find(node);
+        if (iter == finder.end()) {
+            return false;
+        }
+        auto unit = iter->second;
+        finder.erase(iter);
+
+        unit->Destruct();
+        bool free = false;
+        for (auto& block : blocks) {
+            free = block.TryFree(unit);
+            if (free) {
+                break;
+            }
+        }
+        rt_assert_if (free) {
+            return false; // Internal logic error, can not find this unit in all block.
+        }
+        return true;
     }
 
     std::vector<Node> GetNodes() const override
     {
         //std::vector<Node> nodes;
-        //nodes.reserve(components.size());
-        //for (const auto& component : components) {
-        //    nodes.emplace_back(component.first);
+        //nodes.reserve(finder.size());
+        //for (const auto& block : blocks) {
+        //    for (uint32_t fields = block.skipFields.fields; fields != 0; fields >>= 1) {
+        //        if ((fields & 1U) != 0) {
+        //            nodes;
+        //        }
+        //    }
         //}
         //return nodes;
     }
@@ -186,7 +214,7 @@ struct ComponentBuffer : ComponentStorage {
 
     void TrimBlocks()
     {
-        auto iter = blocks.begin() + 1;
+        auto iter = blocks.begin();
         while (iter != blocks.end()) {
             if (*iter.IsEmpty()) {
                 iter = blocks.erase(iter);
