@@ -17,10 +17,16 @@ struct ComponentStorage {
     virtual bool RemoveComponent(Node node) = 0;
     virtual std::vector<Node> GetNodes() const = 0;
     virtual size_t GetSize() const = 0;
+    virtual void TrimMemory() = 0;
 };
 
 template <typename Component>
-struct ComponentBuffer : ComponentStorage {
+struct ComponentLooper {
+    virtual void ForEach(const std::function<void(Node, Component&)>& process) = 0;
+};
+
+template <typename Component>
+struct ComponentBuffer : ComponentStorage, ComponentLooper<Component> {
     struct SkipFields final {
         uint32_t fields = 0;
 
@@ -91,7 +97,7 @@ struct ComponentBuffer : ComponentStorage {
 
         inline Component* ComponentPointer() noexcept
         {
-            return static_cast<Component*>(data);
+            return reinterpret_cast<Component*>(data);
         }
     };
 
@@ -140,15 +146,20 @@ struct ComponentBuffer : ComponentStorage {
 
     void* GetComponent(Node node) override
     {
-        auto unit = finder.find(node);
-        if (unit == finder.end()) {
+        auto iter = finder.find(node);
+        if (iter == finder.end()) {
             return nullptr;
         }
-        return unit->second->ComponentPointer();
+        auto unit = iter->second;
+        return unit->ComponentPointer();
     }
 
     void* AddComponent(Node node) override
     {
+        if (auto component = GetComponent(node)) {
+            return component;
+        }
+
         auto block = blocks.begin();
         while (block != blocks.end()) {
             if (block->IsFull()) {
@@ -195,16 +206,18 @@ struct ComponentBuffer : ComponentStorage {
 
     std::vector<Node> GetNodes() const override
     {
-        //std::vector<Node> nodes;
-        //nodes.reserve(finder.size());
-        //for (const auto& block : blocks) {
-        //    for (uint32_t fields = block.skipFields.fields; fields != 0; fields >>= 1) {
-        //        if ((fields & 1U) != 0) {
-        //            nodes;
-        //        }
-        //    }
-        //}
-        //return nodes;
+        std::vector<Node> nodes;
+        nodes.reserve(finder.size());
+        for (auto& block : blocks) {
+            uint32_t fields = block.skipFields.fields;
+            for (int i = 0; (i < 32) && (fields != 0); i++) {
+                if ((fields & 1U) != 0) {
+                    nodes.emplace_back(block.units[i].node);
+                }
+                fields >>= 1;
+            }
+        }
+        return nodes;
     }
 
     size_t GetSize() const override
@@ -212,21 +225,36 @@ struct ComponentBuffer : ComponentStorage {
         return finder.size();
     }
 
-    void TrimBlocks()
+    void TrimMemory() override
     {
         auto iter = blocks.begin();
         while (iter != blocks.end()) {
-            if (*iter.IsEmpty()) {
+            if (iter->IsEmpty()) {
                 iter = blocks.erase(iter);
             } else {
                 iter++;
+            }
+        }
+        finder.rehash(0);
+    }
+
+    void ForEach(const std::function<void(Node, Component&)>& process) override
+    {
+        for (auto& block : blocks) {
+            uint32_t fields = block.skipFields.fields;
+            for (int i = 0; (i < 32) && (fields != 0); i++) {
+                if ((fields & 1U) != 0) {
+                    process(block.units[i].node,
+                        *(block.units[i].ComponentPointer()));
+                }
+                fields >>= 1;
             }
         }
     }
 };
 
 template <typename Component>
-struct UnorderedComponentBuffer : ComponentStorage {
+struct UnorderedComponentBuffer : ComponentStorage, ComponentLooper<Component> {
     std::unordered_map<Node, Component> components;
 
     Uuid GetType() const override
@@ -266,6 +294,18 @@ struct UnorderedComponentBuffer : ComponentStorage {
     size_t GetSize() const override
     {
         return components.size();
+    }
+
+    void TrimMemory() override
+    {
+        components.rehash(0);
+    }
+
+    void ForEach(const std::function<void(Node, Component&)>& process) override
+    {
+        for (auto& [node, component] : components) {
+            process(node, component);
+        }
     }
 };
 

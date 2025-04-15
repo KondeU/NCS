@@ -142,10 +142,13 @@ public:
         if_unlikely (storage == storages.end()) {
             return false; // Failed because storage is not yet registered.
         }
-        auto buffer = static_cast<ComponentBuffer<Component>*>(storage->second);
-        for (auto& [node, component] : buffer->components) {
-            process(node, component);
+        auto looper = dynamic_cast<ComponentLooper<Component>*>(storage->second);
+        rt_assert_if (looper) {
+            // Please enable RTTI(e.g. -frtti), and make sure your ComponentBuffer
+            // is inherited from ComponentStorage and ComponentLooper<Component>.
+            return false;
         }
+        looper->ForEach(process);
         return true;
     }
 
