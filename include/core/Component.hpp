@@ -10,7 +10,8 @@ static constexpr au::ncs::Uuid ComponentUuid = AU_CT_UUID(#name);
 
 namespace au::ncs {
 
-struct ComponentStorage {
+class ComponentStorage {
+public:
     virtual Uuid GetType() const = 0;
     virtual void* GetComponent(Node node) = 0;
     virtual void* AddComponent(Node node) = 0;
@@ -21,12 +22,24 @@ struct ComponentStorage {
 };
 
 template <typename Component>
-struct ComponentLooper {
+class ComponentExecutor {
+public:
     virtual void ForEach(const std::function<void(Node, Component&)>& process) = 0;
 };
 
 template <typename Component>
-struct ComponentBuffer : ComponentStorage, ComponentLooper<Component> {
+class ComponentBuffer
+    : public ComponentStorage
+    , public ComponentExecutor<Component> {
+public:
+    virtual ~ComponentBuffer()
+    {
+        for (auto& refer : finder) {
+            refer.second->Destruct();
+        }
+    }
+
+protected:
     struct SkipFields final {
         uint32_t fields = 0;
 
@@ -254,7 +267,10 @@ struct ComponentBuffer : ComponentStorage, ComponentLooper<Component> {
 };
 
 template <typename Component>
-struct UnorderedComponentBuffer : ComponentStorage, ComponentLooper<Component> {
+class UnorderedComponentBuffer
+    : public ComponentStorage
+    , public ComponentExecutor<Component> {
+protected:
     std::unordered_map<Node, Component> components;
 
     Uuid GetType() const override

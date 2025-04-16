@@ -142,13 +142,13 @@ public:
         if_unlikely (storage == storages.end()) {
             return false; // Failed because storage is not yet registered.
         }
-        auto looper = dynamic_cast<ComponentLooper<Component>*>(storage->second);
-        rt_assert_if (looper) {
+        auto executor = dynamic_cast<ComponentExecutor<Component>*>(storage->second);
+        rt_assert_if (executor) {
             // Please enable RTTI(e.g. -frtti), and make sure your ComponentBuffer
-            // is inherited from ComponentStorage and ComponentLooper<Component>.
+            // is inherited from ComponentStorage and ComponentExecutor<Component>.
             return false;
         }
-        looper->ForEach(process);
+        executor->ForEach(process);
         return true;
     }
 
